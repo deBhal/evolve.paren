@@ -21,7 +21,7 @@
                        :energy 1000
                        :dir    0
                        :genes  (loop repeat 8
-                                     collecting (1+ (random 10))))))
+                                     collect (1+ (random 10)))))) ; Was "collecting"
 
 (defun move (animal)
   (let ((dir (animal-dir animal))
