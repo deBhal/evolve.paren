@@ -52,6 +52,21 @@
  ;; ^^ (M-x slime-eval-last-expression) here
  )
 
+;; Parenscript defines equal with a macro, so #'equal is a problem
+;; We don't really need this function to work, it just needs to exist
+(defun equal (l r)
+  (equal l r))
+
+;; This is pretty dirty.
+;; Thank you, javascript, for buying a list as a valid key ;)
+(defun make-hash-table (&key test)
+  (create))
+
+;; We could do these with macros, but I'd like to be able to call it
+;; from javascript for debugging
+(defun gethash (key obj)
+  (getprop obj key))
+
 (defparameter *width* 100)
 (defparameter *height* 30)
 (defparameter *jungle* '(45 10 10 10))
