@@ -39,6 +39,14 @@
    (ps:defpsmacro defparameter (&body body)
      `(defvar ,@body))
 
+   (ps:defpsmacro defmake (name)
+     `(defmacro ,(intern (format nil "MAKE-~a" name)) (&rest props)
+        `(create ,@props)))
+
+   (ps:defpsmacro defstruct (name &rest slots)
+       `(progn
+          (defmake name))
+
    )
  ;; ^^ (M-x slime-eval-last-expression) here
  )
