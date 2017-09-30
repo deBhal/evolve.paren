@@ -1,3 +1,48 @@
+;;; Setup.
+
+;;; This is unnecessarily complicated, so It's a good idea to skip through lightly and
+;;; hit the key chords at the indicated points.
+
+;;; However, if you're the kind of person that needs to understand what's actually
+;;; happening, I can sympathize. It's like this:
+;;; 1) We're running the "simple-httpd" webserver in emacs to serve the web page
+;;; 2) We're running lisp itself (happens to be sbcl for me) in it's own process
+;;; 3) We're running "slime" inside emacs itself to connect to that lisp process
+;;; 4) We're running parenscript (in lisp) to compile the parenscript into javascript
+;;; 5) We're using skewer (in emacs) to run inject the javascript into the webpage
+;;; 6) We're using trident (in emacs) to help run the code through parenscript and skewer
+
+;;; Have fun keeping the 3 and a half contexts straight :)
+;;; It does get a lot easier after a little practice
+
+;; Evaluate in emacs context by putting your cursor at the end of the expression
+;; and hitting (C-c m e):
+(quote ;; This quote is to stop slime/trident from running the code meant for emacs
+ (progn
+   ;; I'm already using port 8080, so I need to use something else, you might not
+   (setq httpd-port 8081)
+   (httpd-serve-directory (Format "%s/" default-directory))
+   (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port))
+   (lisp-mode)
+   (trident-mode)
+   (steal-slime-keys-for-trident!)
+   )
+ ;; ^^ (C-c m e) Here for all that
+ )
+
+(quote ;; Code for slime (not trident)
+ (progn
+   (use-package :parenscript)             ; This causes a conflict 'var'. We want to
+   ;; Land of Lisp uses defparameter, but parenscript only has defvar :(
+   ;; (It's not relevant, but if you need to know the difference: https://stackoverflow.com/questions/8927741/whats-difference-betritween-defvar-defparameter-setf-and-setq )
+   ;; Luckily, parenscript predates 'const' in js, so we can just rewrite one to the other:
+   (ps:defpsmacro defparameter (&body body)
+     `(defvar ,@body))
+
+   )
+ ;; ^^ (M-x slime-eval-last-expression) here
+ )
+
 (defparameter *width* 100)
 (defparameter *height* 30)
 (defparameter *jungle* '(45 10 10 10))
