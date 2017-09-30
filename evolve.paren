@@ -32,7 +32,8 @@
 
 (quote ;; Code for slime (not trident)
  (progn
-   (use-package :parenscript)             ; This causes a conflict 'var'. We want to
+   ;; (use-package :parenscript)             ; This causes a conflict 'var'. We want to keep SB-DEBUG:var or things get nasty
+
    ;; Land of Lisp uses defparameter, but parenscript only has defvar :(
    ;; (It's not relevant, but if you need to know the difference: https://stackoverflow.com/questions/8927741/whats-difference-betritween-defvar-defparameter-setf-and-setq )
    ;; Luckily, parenscript predates 'const' in js, so we can just rewrite one to the other:
