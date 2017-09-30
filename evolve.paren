@@ -21,7 +21,7 @@
  (progn
    ;; I'm already using port 8080, so I need to use something else, you might not
    (setq httpd-port 8081)
-   (httpd-serve-directory (Format "%s/" default-directory))
+   (httpd-serve-directory (format "%s/" default-directory))
    (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port))
    (lisp-mode)
    (trident-mode)
