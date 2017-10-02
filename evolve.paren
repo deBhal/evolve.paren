@@ -14,25 +14,16 @@
 
 ;;; Have fun keeping the 3 and a half contexts straight :)
 ;;; It does get a lot easier after a little practice
-
-;; Evaluate in emacs context by putting your cursor at the end of the expression
-;; and hitting (C-c m e):
-(quote ;; This quote is to stop slime/trident from running the code meant for emacs
- (progn
-   ;; I'm already using port 8080, so I need to use something else, you might not
-   (setq httpd-port 8081)
-   (httpd-serve-directory (format "%s/" default-directory))
-   (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port))
-   (lisp-mode)
-   (trident-mode)
-   (steal-slime-keys-for-trident!)
-   )
- ;; ^^ (C-c m e) Here for all that
+(quote ;; Code for slime (not trident)
+ (ql:quickload :parenscript)
+ ;;                         ^^ (M-x slime-eval-last-expression) here
  )
 
-(quote ;; Code for slime (not trident)
+(quote ;; More Code for slime (not trident)
+ ;;                         ^^ (M-x slime-eval-last-expression) here
  (progn
-   ;; (use-package :parenscript)             ; This causes a conflict 'var'. We want to keep SB-DEBUG:var or things get nasty
+   (import 'SB-DEBUG:VAR)
+   (use-package :parenscript) ; This causes a conflict 'var'. We want to keep SB-DEBUG:var or things get nasty
 
    ;; Land of Lisp uses defparameter, but parenscript only has defvar :(
    ;; (It's not relevant, but if you need to know the difference: https://stackoverflow.com/questions/8927741/whats-difference-betritween-defvar-defparameter-setf-and-setq )
@@ -42,15 +33,69 @@
 
    (ps:defpsmacro defmake (name)
      `(defmacro ,(intern (format nil "MAKE-~a" name)) (&rest props)
-        `(create ,@props)))
+        `(ps:create ,@props)))
 
-   (ps:defpsmacro defstruct (name &rest slots)
-       `(progn
-          (defmake name))
+   (ps:defpsmacro define-accessor (struct-name slot-name)
+     `(defun ,(intern (format nil "~a-~a" struct-name slot-name)) (obj)
+        (ps:getprop obj ,(SYMBOL-TO-JS-STRING slot-name))))
+
+   (ps:define-ps-symbol-macro cons list)
+
+   (ps:defpsmacro cons (&rest args)
+     `(list ,@args))
+
+   (ps:defpsmacro defstruct (struct-name &rest slots)
+     `(progn
+        (defmake ,struct-name)
+        ,@(loop for slot in slots collect
+               `(define-accessor ,struct-name ,slot))))
+
+   (ps:defpsmacro gethash (key obj)
+     `(ps:getprop ,obj ,key))
+
 
    )
  ;; ^^ (M-x slime-eval-last-expression) here
  )
+
+
+;; Evaluate in emacs context by putting your cursor at the end of the expression
+;; and hitting (C-c m e):
+;; (Note that "steal-slime-keys-for-trident" is going change the behaviour of C-x C-e
+;; from "slime-eval-last-expression" to "trident-eval-last-expression",
+;; so the key chord evaluates code in the browser instead of in the local lisp)
+(quote ;; This quote is to stop slime/trident from running the code meant for emacs
+ (progn
+   ;; Setup emacs environment
+   (progn
+     (lisp-mode)
+     (trident-mode)
+     (steal-slime-keys-for-trident!))
+
+   ;; Setup skewer
+   (progn
+     (setq httpd-port 8081)  ; I'm already using the default port 8080
+     (httpd-serve-directory (format "%s/" default-directory))
+     (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port)))
+
+   ;; Plug some missing runtime functionality with lodash
+   (progn
+     (skewer-eval "some = _.some")
+     (skewer-eval "removeIf = _.flip( _.remove )")
+     (skewer-eval "mapc = _.flip( _.map )")
+     )
+   )
+ ;; ^^ (C-c m e) Here for all that
+ )
+
+
+(defun lg (&rest args)
+  ((ps:getprop console 'log 'apply) console args))
+(lg "Trident is working as expected")
+;;                                    ^^ C-x C-e here, check that the message
+;;                                       appears in your browser
+
+;; Plug some gaps between what Parenscript offers and evolution.lisp needs
 
 ;; Parenscript defines equal with a macro, so #'equal is a problem
 ;; We don't really need this function to work, it just needs to exist
@@ -60,12 +105,15 @@
 ;; This is pretty dirty.
 ;; Thank you, javascript, for buying a list as a valid key ;)
 (defun make-hash-table (&key test)
-  (create))
+  (ps:create))
 
-;; We could do these with macros, but I'd like to be able to call it
-;; from javascript for debugging
-(defun gethash (key obj)
-  (getprop obj key))
+(setf parse-integer (@ +number parse-int))
+(defun zerop (value)
+  (equal value 0))
+
+
+
+(defstruct animal x y energy dir genes)
 
 (defparameter *width* 100)
 (defparameter *height* 30)
@@ -177,6 +225,19 @@
                                          (t #\space))))
                   (princ "|"))))
 
+
+;; Just another hack for now
+(setf princ-buffer "")
+(defun fresh-line ()
+  ((@ console log) princ-buffer)
+  (setf princ-buffer ""))
+(defun princ (string)
+  (setf princ-buffer (+ princ-buffer string)))
+
+(setf *read-line* "1")
+(defun read-line ()
+  *read-line*)
+
 (defun evolution ()
   (draw-world)
   (fresh-line)
@@ -185,6 +246,7 @@
           (t (let ((x (parse-integer str :junk-allowed t)))
                (if x
                    (loop for i
+                        from 0
                       below x
                       do (update-world)
                       if (zerop (mod i 1000))
