@@ -258,6 +258,11 @@
 (defun read-line ()
   *read-line*)
 
+(defun step ()
+  (update-world)
+  (draw-world)
+  (fresh-line))
+
 (defun evolution ()
   (draw-world)
   (fresh-line)
