@@ -207,7 +207,9 @@
         (setf (animal-genes animal-nu) genes)
         (push animal-nu *animals*)))))
 
+(setf *world-age* 0)
 (defun update-world ()
+  (incf *world-age*)
   (setf *animals* (remove-if (lambda (animal)
                                  (<= (animal-energy animal) 0))
                              *animals*))
