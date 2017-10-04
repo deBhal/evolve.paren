@@ -85,7 +85,7 @@
    ;; Plug some missing runtime functionality (with lodash)
    (progn
      (mapcar 'skewer-eval
-             '("some = _.some"
+             '("some = _.flip( _.some )"
                "removeIf = _.flip( _.reject )"
                "mapc = _.flip( _.map )"
                "car = _.head"
