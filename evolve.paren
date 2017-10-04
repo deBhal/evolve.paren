@@ -36,8 +36,8 @@
         `(ps:create ,@props)))
 
    (ps:defpsmacro define-accessor (struct-name slot-name)
-     `(defun ,(intern (format nil "~a-~a" struct-name slot-name)) (obj)
-        (ps:getprop obj ,(SYMBOL-TO-JS-STRING slot-name))))
+     `(defmacro ,(intern (format nil "~a-~a" struct-name slot-name)) (obj)
+        `(ps:getprop ,obj ,,(SYMBOL-TO-JS-STRING slot-name))))
 
    (ps:define-ps-symbol-macro cons list)
 
@@ -50,9 +50,13 @@
         ,@(loop for slot in slots collect
                `(define-accessor ,struct-name ,slot))))
 
+   ;; We need to use a macro for gethash because it's a place
    (ps:defpsmacro gethash (key obj)
      `(ps:getprop ,obj ,key))
 
+   ;; We need to use a macro for nth because it's a place
+   (ps:defpsmacro nth (n list)
+     `(getprop ,list ,n))
 
    )
  ;; ^^ (M-x slime-eval-last-expression) here
@@ -78,11 +82,19 @@
      (httpd-serve-directory (format "%s/" default-directory))
      (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port)))
 
-   ;; Plug some missing runtime functionality with lodash
+   ;; Plug some missing runtime functionality (with lodash)
    (progn
-     (skewer-eval "some = _.some")
-     (skewer-eval "removeIf = _.flip( _.remove )")
-     (skewer-eval "mapc = _.flip( _.map )")
+     (mapcar 'skewer-eval
+             '("some = _.some"
+               "removeIf = _.flip( _.reject )"
+               "mapc = _.flip( _.map )"
+               "car = _.head"
+               "cdr = _.tail"
+               "plus = (...args) => _.sum(args)"
+               "plus = (...args) => _.sum(args)"
+               "copyStructure = _.cloneDeep"
+               "copyList = _.cloneDeep"
+               ))
      )
    )
  ;; ^^ (C-c m e) Here for all that
@@ -97,8 +109,10 @@
 
 ;; Plug some gaps between what Parenscript offers and evolution.lisp needs
 
+(setf parse-integer (@ +number parse-int))
+
 ;; Parenscript defines equal with a macro, so #'equal is a problem
-;; We don't really need this function to work, it just needs to exist
+;; We don't actually use this function, it just needs to exist
 (defun equal (l r)
   (equal l r))
 
@@ -107,9 +121,15 @@
 (defun make-hash-table (&key test)
   (ps:create))
 
-(setf parse-integer (@ +number parse-int))
+(defun remhash (key hash-table)
+  (delete (getprop hash-table key)))
+
 (defun zerop (value)
   (equal value 0))
+
+(defun push (value list)
+  ((getprop list 'push) value))
+
 
 
 
@@ -234,7 +254,7 @@
 (defun princ (string)
   (setf princ-buffer (+ princ-buffer string)))
 
-(setf *read-line* "1")
+(setf *read-line* "quit")
 (defun read-line ()
   *read-line*)
 
