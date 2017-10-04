@@ -247,24 +247,6 @@
                                          (t #\space))))
                   (princ "|"))))
 
-
-;; Just another hack for now
-(setf princ-buffer "")
-(defun fresh-line ()
-  ((@ console log) princ-buffer)
-  (setf princ-buffer ""))
-(defun princ (string)
-  (setf princ-buffer (+ princ-buffer string)))
-
-(setf *read-line* "quit")
-(defun read-line ()
-  *read-line*)
-
-(defun step ()
-  (update-world)
-  (draw-world)
-  (fresh-line))
-
 (defun evolution ()
   (draw-world)
   (fresh-line)
@@ -280,3 +262,28 @@
                       do (princ #\.))
                    (update-world))
                (evolution))))))
+
+
+;;; Browser specific functionality
+(setf princ-buffer "")
+(defun fresh-line ()
+  ((@ console log) princ-buffer)
+  (setf princ-buffer ""))
+(defun princ (string)
+  (setf princ-buffer (+ princ-buffer string)))
+
+(setf *temp-readline-value* 1)
+(setf *read-line* "quit")
+(defun read-line ()
+  (let ((value (or *temp-readline-value* "quit")))
+    (setf *temp-readline-value* nil)
+    value))
+
+(defun enter (n)
+  (setf *temp-readline-value* n)
+  (evolution))
+
+(defun step ()
+  (update-world)
+  (draw-world)
+  (fresh-line))
