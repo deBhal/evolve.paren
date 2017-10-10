@@ -14,17 +14,48 @@
 
 ;;; Have fun keeping the 3 and a half contexts straight :)
 ;;; It does get a lot easier after a little practice
-(quote ;; Code for slime (not trident)
- (ql:quickload :parenscript)
- ;;                         ^^ (M-x slime-eval-last-expression) here
+
+;; First, we'll get emacs sorted.
+;; Evaluate in emacs context by putting your cursor at the end of the expression
+;; and hitting (C-c m e):
+;; (Note that "steal-slime-keys-for-trident" is going change the behaviour of C-x C-e
+;; from "slime-eval-last-expression" to "trident-eval-last-expression",
+;; so the key chord evaluates code in the browser instead of in the local lisp)
+(quote ;; This quote is to stop slime/trident from running the code meant for emacs
+ (progn
+   ;; Setup emacs environment
+   (progn
+     (lisp-mode)
+     (trident-mode)
+     (steal-slime-keys-for-trident!))
+
+   ;; Setup skewer
+   (progn
+     (setq httpd-port 8081)  ; I'm already using the default port 8080
+     (httpd-serve-directory (format "%s/" default-directory))
+     (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port)))
+   )
+ ;; ^^ (C-c m e) Here for all that
  )
 
-(quote ;; More Code for slime (not trident)
+
+
+(quote ;; Code for slime (not trident)
+ (progn
+   (ql:quickload :parenscript)
+   ;;                         ^^ (M-x slime-eval-last-expression-in-repl) here
+   (import 'sb-debug:var)
+   ;;                         ^^ (M-x slime-eval-last-expression-in-repl) here
+   (shadow 'var)
+   ;;                         ^^ (M-x slime-eval-last-expression-in-repl) here
+   (use-package :parenscript)
+   ;;                         ^^ (M-x slime-eval-last-expression-in-repl) here
+   )
+ )
+
+(quote ;; More Code for lisp/slime (not trident)
  ;;                         ^^ (M-x slime-eval-last-expression) here
  (progn
-   (import 'SB-DEBUG:VAR)
-   (use-package :parenscript) ; This causes a conflict 'var'. We want to keep SB-DEBUG:var or things get nasty
-
    ;; Land of Lisp uses defparameter, but parenscript only has defvar :(
    ;; (It's not relevant, but if you need to know the difference: https://stackoverflow.com/questions/8927741/whats-difference-betritween-defvar-defparameter-setf-and-setq )
    ;; Luckily, parenscript predates 'const' in js, so we can just rewrite one to the other:
@@ -62,44 +93,30 @@
  ;; ^^ (M-x slime-eval-last-expression) here
  )
 
-
-;; Evaluate in emacs context by putting your cursor at the end of the expression
-;; and hitting (C-c m e):
-;; (Note that "steal-slime-keys-for-trident" is going change the behaviour of C-x C-e
-;; from "slime-eval-last-expression" to "trident-eval-last-expression",
-;; so the key chord evaluates code in the browser instead of in the local lisp)
-(quote ;; This quote is to stop slime/trident from running the code meant for emacs
- (progn
-   ;; Setup emacs environment
-   (progn
-     (lisp-mode)
-     (trident-mode)
-     (steal-slime-keys-for-trident!))
-
-   ;; Setup skewer
-   (progn
-     (setq httpd-port 8081)  ; I'm already using the default port 8080
-     (httpd-serve-directory (format "%s/" default-directory))
-     (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port)))
-
-   ;; Plug some missing runtime functionality (with lodash)
-   (progn
-     (mapcar 'skewer-eval
-             '("some = _.flip( _.some )"
-               "removeIf = _.flip( _.reject )"
-               "mapc = _.flip( _.map )"
-               "car = _.head"
-               "cdr = _.tail"
-               "plus = (...args) => _.sum(args)"
-               "plus = (...args) => _.sum(args)"
-               "copyStructure = _.cloneDeep"
-               "copyList = _.cloneDeep"
-               ))
-     )
-   )
- ;; ^^ (C-c m e) Here for all that
+;;; Build:
+;;; M-x trident-compile-buffer-to-file (ret) "evolve.js"
+(quote
+ ((@ location reload))
+ ;;                    ^ C-x C-e reload the page
  )
 
+(defun plus (&rest args) ((@ _ sum) args))
+(setf lodash-subs
+      '((car head)
+        (cdr tail)
+        (copy-structure "cloneDeep")
+        (copy-list "cloneDeep")))
+(setf lodash-flip-subs
+      '((some some)
+        (remove-if reject)
+        (mapc map)))
+
+(loop
+   for (local remote) in lodash-subs
+   do (setf (getprop this local) (getprop _ remote)))
+(loop
+   for (local remote) in lodash-flip-subs
+   do (setf (getprop this local) ((@ _ flip) (getprop _ remote))))
 
 (defun lg (&rest args)
   ((ps:getprop console 'log 'apply) console args))
@@ -209,7 +226,7 @@
 
 (setf *world-age* 0)
 (defun update-world ()
-  (incf *world-age*)
+  (increment-world-age)
   (setf *animals* (remove-if (lambda (animal)
                                  (<= (animal-energy animal) 0))
                              *animals*))
@@ -261,14 +278,34 @@
                       if (zerop (mod i 1000))
                       do (princ #\.))
                    (update-world))
-               (evolution))))))
+               (set-timeout evolution))))))
 
 
 ;;; Browser specific functionality
+(setf world-element ((@ document "getElementById") "world"))
+(setf world-age-element ((@ document "getElementById") "world-age"))
+(setf run-button ((@ document "getElementById") "run"))
+(setf pause-button ((@ document "getElementById") "pause"))
+(setf step-button ((@ document "getElementById") "step"))
+
+(setf (@ world-element rows) (+ 1 *height*))
+(setf (@ world-element cols) (+ 2 *width*))
+
 (setf princ-buffer "")
+(defun draw-world-browser ()
+  (setf princ-buffer "")
+  (draw-world)
+  (setf (@ world-element value) princ-buffer)
+  (setf )
+  )
+
 (defun fresh-line ()
-  ((@ console log) princ-buffer)
-  (setf princ-buffer ""))
+  ;; Don't render the first line-feed
+  (and princ-buffer (princ #\linefeed))
+;  (setf (@ world-div "innerText") princ-buffer)
+  ;(setf princ-buffer "")
+  )
+
 (defun princ (string)
   (setf princ-buffer (+ princ-buffer string)))
 
@@ -279,11 +316,102 @@
     (setf *temp-readline-value* nil)
     value))
 
-(defun enter (n)
-  (setf *temp-readline-value* n)
-  (evolution))
+(defun async-loop (fun))
 
-(defun step ()
+(defun enter (n)
+  (setf *running* (+ *world-age* n))
+  (running-step))
+
+
+(defun step (&optional (draw t))
   (update-world)
-  (draw-world)
+  (and draw (draw-world-browser))
   (fresh-line))
+
+(setf *running* nil)
+(defun run (&optional (steps +infinity))
+  (setf *running* (+ *world-age* steps))
+  (running-step))
+
+(setf *world-render-period* 10000)
+(setf *world-age-render-period* 100)
+(defun running-step ()
+  (let* ((finished (not (< *world-age* *running*)))
+         (should-draw-world (or finished
+                                (= 0 (mod *world-age* *world-render-period*))))
+         (should-draw-world-age (or finished
+                                    (= 0 (mod *world-age* *world-age-render-period*))))
+         (drawing-something (or should-draw-world should-draw-world-age)))
+    (or finished (update-world))
+    (and should-draw-world (draw-world-browser))
+    (and should-draw-world-age (draw-world-age))
+    (or finished
+        (progn
+          ;; We need to release the main thread for updates, but that's a pretty
+          ;; bad bottleneck when we're running a lot of generations, so setTimeout()
+          ;; when we want to draw
+          ;; Parenscript lacks tail call optimization, so the setTimeout also
+          ;; serves to protect the stack
+          (if drawing-something
+              (set-timeout #'running-step)
+              (running-step))))))
+
+(defun stop ()
+  (setf *running* nil))
+
+(defun draw-world-age (&optional (age *world-age*))
+  (and world-age-element
+       (setf (@ world-age-element "innerText") age)))
+
+(defun increment-world-age ()
+    (incf *world-age*)
+    (draw-world-age))
+
+;; Hook up html buttons
+
+(defun get-element-by-id (id)
+  ((@ document "getElementById") id))
+
+(setf run-for-input-element (get-element-by-id "run-for-input"))
+(defun run-for-input-value ()
+  (run (+Number (@ run-for-input-element value))))
+
+(defun assign-on-click (button-id callback)
+  (setf (getprop ((@ document "getElementById") button-id) "onclick") callback))
+
+(assign-on-click "run" run)
+(assign-on-click "stop" stop)
+(assign-on-click "step" step)
+(assign-on-click "run-for" run-for-input-value)
+
+(defun scope-state-name (name)
+  (+ "evolve:" name))
+
+;;; I should probably fix these to use place semantics
+(defun save-item (name value)
+  ((@ local-storage "setItem") (scope-state-name name) ((@ *json* stringify) value))
+  value)
+
+(defun load-item (name)
+  ((@ *json* parse) (@ local-storage (scope-state-name name))))
+
+(defun create-current-state-object ()
+  (create world-age *world-age*
+          animals *animals*
+          plants *plants*))
+
+(defun save-state (&optional (name "state"))
+    (save-item name (create-current-state-object)))
+
+(defun load-state (&optional (name "state"))
+  (let ((current-state (load-item name)))
+    (with-slots (world-age animals plants) current-state
+        (setf *world-age* world-age
+              *animals* animals
+              *plants* plants))
+    (draw-world-browser)
+    (draw-world-age)
+    current-state))
+
+(draw-world-browser)
+(enter 1)
