@@ -85,7 +85,25 @@
         <svg class="floppy-o" width="12" height="14"><use href="#floppy-o" /> </svg>
         &rsaquo;
       </button>
-    </div>
+       </div>
+       <p>
+       For now, you'll need to poke around in the console to explore any more. <code>ANIMALS</code> holds all the evolving animals.
+       The animal genes are weights for directions, with 1 (the second entry) being straight ahead:<p>
+       <pre>
+       0 1 2
+       7 &uarr; 3
+       6 5 4
+       </pre>
+
+       So if an animal's genes were <code>[1, 4, 1, 0, 0, 0, 0, 0]</code> you could imagine rolling a die and counting through the numbers: 1 &rarr; turn 45&deg; to the left, 2-5 &rarr; go straight ahead, 6 &rarr; turn 45&deg; to the right. If the animal had a 10 for every "gene", you'd need an 80 sided die, but it would have the same probability of turning in any direction<p>
+
+       Each cycle, we generate one plant in a "jungle" area in the middle, and another in the broader map, and after 5,000,000 iterations, we expect to see two "species", one that hangs around in roughly the same place trying to stay in the jungle plants, and one that goes charging out over the map looking for the rest.
+
+       The first animal will reproduce a bunch of times without having to find food, so it might be interesting to mess with it. You could kickstart the pessimistic breed by refreshing the page and copying this into the console: <code>ANIMALS[0].genes = [0, 0, 0, 1, 1, 10, 1, 1]</code></p>
+
+       From there, you can watch the optimistic/explorer species evolve by tracking the forwards gene: <code>_.maxBy(ANIMALS, 'genes.1').genes</code>. I've added <code>optimism</code> or <code>pessimism</code> functions for this purpose too: <code>_.maxBy(ANIMALS, optimism).genes</code><p>
+
+      They're not very good approximations, because the absolute values don't mean anything, but we just want to see that we will always get both eventually, no matter what we start with.
     <script src="lodash.min.js"></script>
     <script src="/skewer"></script>
     <script src="evolve.js"></script>

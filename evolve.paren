@@ -100,6 +100,12 @@
  ;;                    ^ C-x C-e reload the page
  )
 
+(defun optimism (animal)
+  ((@ _ sum) ((@ animal genes slice) 0 3)))
+
+(defun pessimism (animal)
+  ((@ _ sum) ((@ animal genes slice) 3)))
+
 (defun plus (&rest args) ((@ _ sum) args))
 (setf lodash-subs
       '((car head)
