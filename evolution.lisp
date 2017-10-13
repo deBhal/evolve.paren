@@ -21,7 +21,7 @@
                        :energy 1000
                        :dir    0
                        :genes  (loop repeat 8
-                                     collecting (1+ (random 10))))))
+                                     collect (1+ (random 10)))))) ; Was "collecting"
 
 (defun move (animal)
   (let ((dir (animal-dir animal))
@@ -82,12 +82,22 @@
         *animals*)
   (add-plants))
 
+;; Parenscript's loop handling assumes that there's a from before a below
+;; in ps-loop.lisp
+;; It would be nice to fix this - sbcl has no problem with it, and the
+;; The ANSI standard includes examples like this, e.g.
+;; https://github.com/sbcl/ansi-cl-tests/blob/a755e2480caed1d3010943a9fbcfe61155a9240f/loop1.lsp#L185
+;; (loop for x below 5 collect x) ; => (0 1 2 3 4)
+;; I'd need to update PARENSCRIPT::for-clause and/or PARENSCRIPT::for-from
+;; For now, though, I'm just going to make parenscript happy
 (defun draw-world ()
   (loop for y
+        from 0
         below *height*
         do (progn (fresh-line)
                   (princ "|")
                   (loop for x
+                        from 0
                         below *width*
                         do (princ (cond ((some (lambda (animal)
                                                  (and (= (animal-x animal) x)
@@ -106,6 +116,7 @@
           (t (let ((x (parse-integer str :junk-allowed t)))
                (if x
                    (loop for i
+                        from 0
                       below x
                       do (update-world)
                       if (zerop (mod i 1000))
