@@ -1,0 +1,138 @@
+(quote
+ (progn
+   (lisp-mode)
+   (trident-mode)
+   (steal-slime-keys-for-trident!)
+   )
+ ;; ^^ (C-c m e) Here for interactive development
+ )
+
+(quote
+ ((ps:getprop console 'log)
+  "Trident is working as expected in evolution-browser.paren"
+  )
+ ;; ^^ C-x C-e here and check for console output in the browser to confirm
+ ;; interactive development is working
+ )
+
+(setf *world-age* 0)
+
+;;; Browser specific functionality
+(setf world-element ((@ document "getElementById") "world"))
+(setf world-age-element ((@ document "getElementById") "world-age"))
+(setf run-button ((@ document "getElementById") "run"))
+(setf pause-button ((@ document "getElementById") "pause"))
+(setf step-button ((@ document "getElementById") "step"))
+
+(setf (@ world-element rows) (+ 1 *height*))
+(setf (@ world-element cols) (+ 2 *width*))
+
+(defun draw-world-browser ()
+  (setf princ-buffer "")
+  (draw-world)
+  (setf (@ world-element value) princ-buffer)
+  (setf )
+  )
+
+(defun enter (n)
+  (setf *running* (+ *world-age* n))
+  (running-step))
+
+
+(defun update-world-browser ()
+  (update-world)
+  (increment-world-age))
+
+(defun step (&optional (draw t))
+  (update-world-browser)
+  (increment-world-age)
+  (and draw (draw-world-browser))
+  (fresh-line))
+
+(setf *running* nil)
+(defun run (&optional (steps +infinity))
+  (setf *running* (+ *world-age* steps))
+  (running-step))
+
+(setf *world-render-period* 10000)
+(setf *world-age-render-period* 100)
+(defun running-step ()
+  (let* ((finished (not (< *world-age* *running*)))
+         (should-draw-world (or finished
+                                (= 0 (mod *world-age* *world-render-period*))))
+         (should-draw-world-age (or finished
+                                    (= 0 (mod *world-age* *world-age-render-period*))))
+         (drawing-something (or should-draw-world should-draw-world-age)))
+    (or finished (update-world-browser))
+    (and should-draw-world (draw-world-browser))
+    (and should-draw-world-age (draw-world-age))
+    (or finished
+        (progn
+          ;; We need to release the main thread for updates, but that's a pretty
+          ;; bad bottleneck when we're running a lot of generations, so setTimeout()
+          ;; when we want to draw
+          ;; Parenscript lacks tail call optimization, so the setTimeout also
+          ;; serves to protect the stack
+          (if drawing-something
+              (set-timeout #'running-step)
+              (running-step))))))
+
+(defun stop ()
+  (setf *running* nil))
+
+(defun draw-world-age (&optional (age *world-age*))
+  (and world-age-element
+       (setf (@ world-age-element "innerText") age)))
+
+(defun increment-world-age ()
+    (incf *world-age*)
+    (draw-world-age))
+
+;; Hook up html buttons
+
+(defun get-element-by-id (id)
+  ((@ document "getElementById") id))
+
+(setf run-for-input-element (get-element-by-id "run-for-input"))
+(defun run-for-input-value ()
+  (run (+Number (@ run-for-input-element value))))
+
+(defun assign-on-click (button-id callback)
+  (setf (getprop ((@ document "getElementById") button-id) "onclick") callback))
+
+(assign-on-click "run" run)
+(assign-on-click "stop" stop)
+(assign-on-click "step" step)
+(assign-on-click "run-for" run-for-input-value)
+
+(defun scope-state-name (name)
+  (+ "evolve:" name))
+
+;;; I should probably fix these to use place semantics
+(defun save-item (name value)
+  ((@ local-storage "setItem") (scope-state-name name) ((@ *json* stringify) value))
+  value)
+
+(defun load-item (name)
+  ((@ *json* parse) (@ local-storage (scope-state-name name))))
+
+(defun create-current-state-object ()
+  (create world-age *world-age*
+          animals *animals*
+          plants *plants*))
+
+(defun save-state (&optional (name "state"))
+    (save-item name (create-current-state-object)))
+
+(defun load-state (&optional (name "state"))
+  (let ((current-state (load-item name)))
+    (with-slots (world-age animals plants) current-state
+        (setf *world-age* world-age
+              *animals* animals
+              *plants* plants))
+    (draw-world-browser)
+    (draw-world-age)
+    current-state))
+
+(draw-world-browser)
+(enter 1)

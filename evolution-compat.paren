@@ -1,0 +1,184 @@
+;;; Setup.
+
+;;; This is unnecessarily complicated, so It's a good idea to skip through lightly and
+;;; hit the key chords at the indicated points.
+
+;;; However, if you're the kind of person that needs to understand what's actually
+;;; happening, I can sympathize. It's like this:
+;;; 1) We're running the "simple-httpd" webserver in emacs to serve the web page
+;;; 2) We're running lisp itself (happens to be sbcl for me) in it's own process
+;;; 3) We're running "slime" inside emacs itself to connect to that lisp process
+;;; 4) We're running parenscript (in lisp) to compile the parenscript into javascript
+;;; 5) We're using skewer (in emacs) to run inject the javascript into the webpage
+;;; 6) We're using trident (in emacs) to help run the code through parenscript and skewer
+
+;;; Have fun keeping the 3 and a half contexts straight :)
+;;; It does get a lot easier after a little practice
+
+;; First, we'll get emacs sorted.
+;; Evaluate in emacs context by putting your cursor at the end of the expression
+;; and hitting (C-c m e):
+;; (Note that "steal-slime-keys-for-trident" is going change the behaviour of C-x C-e
+;; from "slime-eval-last-expression" to "trident-eval-last-expression",
+;; so the key chord evaluates code in the browser instead of in the local lisp)
+(quote ;; This quote is to stop slime/trident from running the code meant for emacs
+ (progn
+   ;; Setup emacs environment
+   (progn
+     (lisp-mode)
+     (trident-mode)
+     (steal-slime-keys-for-trident!))
+
+   ;; Setup skewer
+   (progn
+     (setq httpd-port 8081)  ; I'm already using the default port 8080
+     (httpd-serve-directory (format "%s/" default-directory))
+     (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port)))
+   )
+ ;; ^^ (C-c m e) Here for all that
+ )
+
+
+
+(quote
+ ;; Code for slime (not trident)
+ ;; quickload will download and the parenscript files if necessary, and then load
+ ;; them to make the parenscript package available
+ (ql:quickload :parenscript)
+ ;;                         ^^ C-c c-j (or M-x slime-eval-last-expression)
+ )
+
+
+(quote
+ ;; Compatibility macros
+
+ ;; These are the Parenscript macros we need to make the lisp code run
+ ;; Parenscript doesn't claim to be a lisp, it's just a lispy wrapper around
+ ;; javascript, so we need to provide some lisp functionality that parenscript
+ ;; doesn't.
+
+ ;; Parenscript is a lisp program, so we'll be running this code in the lisp
+ ;; context (using slime).
+ (progn
+   ;; Use the symbols exported by the parenscript package
+   ;; sbcl provides a symbol in cl-user that will collide, so we'll mark it
+   ;; as shadowing to resolve that before it happens
+   (import 'sb-debug:var)
+   (shadow 'var)
+   (use-package :parenscript)
+
+   ;; Land of Lisp uses defparameter, but parenscript only has defvar :(
+   ;; (It's not relevant, but if you need to know the difference: https://stackoverflow.com/questions/8927741/whats-difference-betritween-defvar-defparameter-setf-and-setq )
+   ;; Luckily, parenscript predates 'const' in js, so we can just rewrite one to the other:
+   (ps:defpsmacro defparameter (&body body)
+     `(defvar ,@body))
+
+   (ps:defpsmacro defmake (name)
+     `(defmacro ,(intern (format nil "MAKE-~a" name)) (&rest props)
+        `(ps:create ,@props)))
+
+   (ps:defpsmacro define-accessor (struct-name slot-name)
+     `(defmacro ,(intern (format nil "~a-~a" struct-name slot-name)) (obj)
+        `(ps:getprop ,obj ,,(SYMBOL-TO-JS-STRING slot-name))))
+
+   (ps:define-ps-symbol-macro cons list)
+
+   (ps:defpsmacro cons (&rest args)
+     `(list ,@args))
+
+   (ps:defpsmacro defstruct (struct-name &rest slots)
+     `(progn
+        (defmake ,struct-name)
+        ,@(loop for slot in slots collect
+               `(define-accessor ,struct-name ,slot))))
+
+   ;; We need to use a macro for gethash because it's a place
+   (ps:defpsmacro gethash (key obj)
+     `(ps:getprop ,obj ,key))
+
+   ;; We need to use a macro for nth because it's a place
+   (ps:defpsmacro nth (n list)
+     `(getprop ,list ,n))
+   )
+ ;; ^^ (M-x slime-eval-last-expression) here
+ )
+
+;;; Build:
+;;; M-x trident-compile-buffer-to-file (ret) "evolve.js"
+(quote
+ ((@ location reload))
+ ;;                    ^ C-x C-e reload the page
+ )
+
+(defun optimism (animal)
+  ((@ _ sum) ((@ animal genes slice) 0 3)))
+
+(defun pessimism (animal)
+  ((@ _ sum) ((@ animal genes slice) 3)))
+
+(defun plus (&rest args) ((@ _ sum) args))
+(setf lodash-subs
+      '((car head)
+        (cdr tail)
+        (copy-structure "cloneDeep")
+        (copy-list "cloneDeep")))
+(setf lodash-flip-subs
+      '((some some)
+        (remove-if reject)
+        (mapc map)))
+
+(loop
+   for (local remote) in lodash-subs
+   do (setf (getprop this local) (getprop _ remote)))
+(loop
+   for (local remote) in lodash-flip-subs
+   do (setf (getprop this local) ((@ _ flip) (getprop _ remote))))
+
+(defun lg (&rest args)
+  ((ps:getprop console 'log 'apply) console args))
+(lg "Trident is working as expected")
+;;                                    ^^ C-x C-e here, check that the message
+;;                                       appears in your browser
+
+;; Plug some gaps between what Parenscript offers and evolution.lisp needs
+
+(setf parse-integer (@ +number parse-int))
+
+;; Parenscript defines equal with a macro, so #'equal is a problem
+;; We don't actually use this function, it just needs to exist
+(defun equal (l r)
+  (equal l r))
+
+;; This is pretty dirty.
+;; Thank you, javascript, for buying a list as a valid key ;)
+(defun make-hash-table (&key test)
+  (ps:create))
+
+(defun remhash (key hash-table)
+  (delete (getprop hash-table key)))
+
+(defun zerop (value)
+  (equal value 0))
+
+(defun push (value list)
+  ((getprop list 'push) value))
+
+
+(setf princ-buffer "")
+
+(defun fresh-line ()
+  ;; Don't render the first line-feed
+  (and princ-buffer (princ #\linefeed))
+;  (setf (@ world-div "innerText") princ-buffer)
+  ;(setf princ-buffer "")
+  )
+
+(defun princ (string)
+  (setf princ-buffer (+ princ-buffer string)))
+
+(setf *temp-readline-value* 1)
+(setf *read-line* "quit")
+(defun read-line ()
+  (let ((value (or *temp-readline-value* "quit")))
+    (setf *temp-readline-value* nil)
+    value))
