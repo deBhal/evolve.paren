@@ -36,7 +36,6 @@
  ;;                         ^^ C-c c-j (or M-x slime-eval-last-expression)
  )
 
-
 (quote
  ;; Compatibility macros
 
