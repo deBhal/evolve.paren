@@ -33,7 +33,7 @@
    (progn
      (setq httpd-port 8081)  ; I'm already using the default port 8080
      (httpd-serve-directory (format "%sdocs/" default-directory))
-     (browse-url (format "http://127.0.0.1:%d/evolvution.html" httpd-port)))
+     (browse-url (format "http://127.0.0.1:%d/index.html" httpd-port)))
    )
  ;; ^^ (C-c m e) Here for all that
  )
