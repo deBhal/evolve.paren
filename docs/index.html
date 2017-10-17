@@ -108,27 +108,27 @@
         </button>
       </div>
       <div className="explanation">
-        The original program was designed to be explored with a repl and a text interface, so I've tried to keep that aesthetic while adding some UI more natural on the web.
+        All the "animals" work the same way, exploring the map according to their "genes", eating food (<code>.</code>) they come across to keep themselves alive, and using excess food to reproduce asexually.
 
-        <p>For now, you'll need to poke around in the console to explore any more. <code>ANIMALS</code> holds all the evolving animals.
-        The animal genes are weights for it turning relative to it's previous facing, with 1 (the second entry) being "straight ahead" (it will move in the same direction it was going in the previous cylce):<p>
+        <p>They are rendered according to a simplistic "optimism" measure from most to least "optimistic": <code>A</code> <code>^</code> <code>o</code> <code>x</code> <code>X</code>.
+        <p>An <code>A</code> indicates that the animals genes are such that it will nearly always move forwards, and at the other extreme an <code>X</code> indicates an animal that will almost always turn to the side or backwards.
+
+        <p>The simulation includes a "jungle" area in the center where food spawns twice as often as the rest of the world, and what we'd like to see is some "speciation", as one group of animals evolves to take advantage of the jungle by not moving much, and another group roams much more widely looking for the rest of the food.
+
+        <p>The animals genes are weights for it turning relative to it's previous facing, with 1 (the second entry) being "straight ahead" (it will move in the same direction it was going in the previous cycle):<p>
           <pre>
             0 1 2
             7 &uarr; 3
             6 5 4
           </pre>
 
-          So if an animal's genes were <code>[1, 4, 1, 0, 0, 0, 0, 0]</code> you could imagine rolling a die and counting through the numbers: 1 &rarr; turn 45&deg; to the left, 2-5 &rarr; go straight ahead, 6 &rarr; turn 45&deg; to the right. If the animal had a 10 for every "gene", you'd need an 80 sided die, but it would have the same probability of turning in any direction
+          <p>So if an animal's genes were <code>[1, 4, 1, 0, 0, 0, 0, 0]</code> you could imagine rolling a die and counting through the numbers: 1 &rarr; turn 45&deg; to the left, 2-5 &rarr; go straight ahead, 6 &rarr; turn 45&deg; to the right. The weights are relative, so if the animal had a the same value for every gene, it would move completely randomly no matter what the actual value was.
 
-        <p>TL;DR: If the first three values are high (especially the second value), the animal will tend to travel, and if the other 5 values are high, it will tend to mill or circle around near the area that it starts.
+        <p>So If the first three values are high (especially the second value), the animal will tend to travel, and if the other 5 values are high, it will tend to mill or circle around near the area that it starts.
 
-        <p>Each cycle, we generate one plant in a "jungle" area in the middle, and another in the broader map, and after 5,000,000 iterations, we expect to see two "species", one that hangs around in roughly the same place trying to stay in the jungle plants, and one that goes charging out over the map looking for the rest.
+        <p>Note: The first animal gets a huge artificial starting "energy", which means it will reproduce a bunch of times without having to find food, so it might be interesting to mess with it. You could kickstart the pessimistic breed by refreshing the page and copying this into the console: <code>ANIMALS[0].genes = [0, 0, 0, 1, 1, 10, 1, 1]</code> or hand craft something you think might do very well or very poorly (you'll need to refresh the page if they die out, but I've never seen that happen).
 
-        <p>Note: The first animal gets a huge artificial starting "energy", which means it will reproduce a bunch of times without having to find food, so it might be interesting to mess with it. You could kickstart the pessimistic breed by refreshing the page and copying this into the console: <code>ANIMALS[0].genes = [0, 0, 0, 1, 1, 10, 1, 1]</code> or hand craft something you think might do very well or very poorly (you'll need to refresh the page if they die out).
-
-          From there, you can watch the optimistic/explorer species evolve by tracking the forwards gene: <code>_.maxBy(ANIMALS, 'genes.1').genes</code>. I've added <code>optimism</code> or <code>pessimism</code> functions for this purpose too: <code>_.maxBy(ANIMALS, optimism).genes</code><p>
-
-          They're not very good approximations, because the absolute values don't mean anything, but we just want to see that we will always get both eventually, no matter what we start with.
+         <p>You can also watch the optimistic/explorer species evolve by tracking the forwards gene: <code>_.maxBy(ANIMALS, 'genes.1').genes</code>. I've added <code>optimism</code> or <code>pessimism</code> functions for this purpose too: <code>_.maxBy(ANIMALS, optimism).genes</code>
       </div>
       <hr>
       <div className="dislaimer">
