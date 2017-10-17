@@ -23,8 +23,8 @@
    ;; Setup skewer
    (progn
      (setq httpd-port 8081)  ; I'm already using the default port 8080
-     (httpd-serve-directory (format "%s/" default-directory))
-     (browse-url (format "http://127.0.0.1:%d/evolve.html" httpd-port)))
+     (httpd-serve-directory (format "%s/docs/" default-directory))
+     (browse-url (format "http://127.0.0.1:%d/index.html" httpd-port)))
    )
  ;; ^^ (C-c m e) Here for all that
  )
