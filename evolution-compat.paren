@@ -123,7 +123,7 @@
         (copy-structure "cloneDeep")
         (copy-list "cloneDeep")))
 (setf lodash-flip-subs
-      '((some some)
+      '((some find)
         (remove-if reject)
         (mapc map)))
 
@@ -182,3 +182,15 @@
   (let ((value (or *temp-readline-value* "quit")))
     (setf *temp-readline-value* nil)
     value))
+
+;; From most to least optimistic: A^-xX
+
+(defun char-for (animal)
+  (let* ((animal-total ((@ _ sum) (@ animal genes)))
+         (animal-absolute-optimism (optimism animal))
+         (animal-optimism (/ animal-absolute-optimism animal-total)))
+    (cond ((<= animal-optimism 0.2) #\X)
+          ((<= animal-optimism 0.4) #\x)
+          ((<= animal-optimism 0.6) #\o)
+          ((<= animal-optimism 0.8) #\^)
+          ((<= animal-optimism 1.0) #\A))))

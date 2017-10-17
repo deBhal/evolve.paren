@@ -99,13 +99,13 @@
                   (loop for x
                         from 0
                         below *width*
-                        do (princ (cond ((some (lambda (animal)
+                     do (princ (let ((animal (some (lambda (animal)
                                                  (and (= (animal-x animal) x)
                                                       (= (animal-y animal) y)))
-                                               *animals*)
-                                         #\M)
-                                        ((gethash (cons x y) *plants*) #\*)
-                                         (t #\space))))
+                                                   *animals*)))
+                                 (cond (animal (char-for animal)) ;; Changed from #\M
+                                       ((gethash (cons x y) *plants*) #\.) ;; changed from *
+                                       (t #\space)))))
                   (princ "|"))))
 
 (defun evolution ()
