@@ -148,7 +148,4 @@
 (assign-on-click "step" play-for-input-value)
 (assign-on-click "run-for" run-for-input-value)
 
-;; Go!
-
 (draw-world-browser)
-(enter 1)

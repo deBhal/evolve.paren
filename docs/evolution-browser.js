@@ -133,4 +133,3 @@ assignOnClick('stop', stop);
 assignOnClick('step', playForInputValue);
 assignOnClick('run-for', runForInputValue);
 drawWorldBrowser();
-enter(1);
