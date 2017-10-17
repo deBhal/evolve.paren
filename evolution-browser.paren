@@ -44,6 +44,7 @@
   (increment-world-age))
 
 (defun step (&optional (draw t))
+  (setf *running* nil)
   (update-world-browser)
   (increment-world-age)
   (and draw (draw-world-browser))
@@ -56,12 +57,14 @@
 
 (setf *world-render-period* 10000)
 (setf *world-age-render-period* 100)
-(defun running-step ()
+(defun running-step (&optional
+                       (world-render-period *world-render-period*)
+                       (world-age-render-period *world-age-render-period*))
   (let* ((finished (not (< *world-age* *running*)))
          (should-draw-world (or finished
-                                (= 0 (mod *world-age* *world-render-period*))))
+                                (= 0 (mod *world-age* world-render-period))))
          (should-draw-world-age (or finished
-                                    (= 0 (mod *world-age* *world-age-render-period*))))
+                                    (= 0 (mod *world-age* world-age-render-period))))
          (drawing-something (or should-draw-world should-draw-world-age)))
     (or finished (update-world-browser))
     (and should-draw-world (draw-world-browser))
@@ -74,8 +77,15 @@
           ;; Parenscript lacks tail call optimization, so the setTimeout also
           ;; serves to protect the stack
           (if drawing-something
-              (set-timeout #'running-step)
-              (running-step))))))
+              (set-timeout (lambda ()
+                             (running-step world-render-period
+                                           world-age-render-period)))
+              (running-step world-render-period
+                            world-age-render-period))))))
+
+(defun play (&optional (steps +infinity))
+  (setf *running* (+ *world-age* steps))
+  (running-step 1 1))
 
 (defun stop ()
   (setf *running* nil))
@@ -87,23 +97,6 @@
 (defun increment-world-age ()
     (incf *world-age*)
     (draw-world-age))
-
-;; Hook up html buttons
-
-(defun get-element-by-id (id)
-  ((@ document "getElementById") id))
-
-(setf run-for-input-element (get-element-by-id "run-for-input"))
-(defun run-for-input-value ()
-  (run (+Number (@ run-for-input-element value))))
-
-(defun assign-on-click (button-id callback)
-  (setf (getprop ((@ document "getElementById") button-id) "onclick") callback))
-
-(assign-on-click "run" run)
-(assign-on-click "stop" stop)
-(assign-on-click "step" step)
-(assign-on-click "run-for" run-for-input-value)
 
 (defun scope-state-name (name)
   (+ "evolve:" name))
@@ -133,6 +126,29 @@
     (draw-world-browser)
     (draw-world-age)
     current-state))
+
+;; Hook up html buttons
+
+(defun get-element-by-id (id)
+  ((@ document "getElementById") id))
+
+(setf run-for-input-element (get-element-by-id "run-for-input"))
+(defun run-for-input-value ()
+  (run (+Number (@ run-for-input-element value))))
+
+(defun play-for-input-value ()
+  (play (+Number (@ run-for-input-element value))))
+
+(defun assign-on-click (button-id callback)
+  (setf (getprop ((@ document "getElementById") button-id) "onclick") callback))
+
+(assign-on-click "play" play)
+(assign-on-click "fast-forward" run)
+(assign-on-click "stop" stop)
+(assign-on-click "step" play-for-input-value)
+(assign-on-click "run-for" run-for-input-value)
+
+;; Go!
 
 (draw-world-browser)
 (enter 1)
