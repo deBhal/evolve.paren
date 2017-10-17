@@ -16,11 +16,11 @@ var ANIMALS = [{ 'x' : WIDTH >> 1,
                  'energy' : 1000,
                  'dir' : 0,
                  'genes' : (function () {
-    var collect8 = [];
-    for (var _js7 = 0; _js7 < 8; _js7 += 1) {
-        collect8.push(Math.floor(10 * Math.random()) + 1);
+    var collect22 = [];
+    for (var _js21 = 0; _js21 < 8; _js21 += 1) {
+        collect22.push(Math.floor(10 * Math.random()) + 1);
     };
-    return collect8;
+    return collect22;
 })()
                }];
 function move(animal) {
@@ -72,14 +72,15 @@ function updateWorld() {
     return addPlants();
 };
 function drawWorld() {
+    var animal23;
     for (var y = 0; y < HEIGHT; y += 1) {
         freshLine();
         princ('|');
         for (var x = 0; x < WIDTH; x += 1) {
             with ({ x : x }) {
-                princ(some(function (animal) {
+                princ((animal23 = some(function (animal) {
                     return animal['x'] === x && animal['y'] === y;
-                }, ANIMALS) ? 'M' : (PLANTS[[x, y]] ? '*' : ' '));
+                }, ANIMALS), animal23 ? charFor(animal23) : (PLANTS[[x, y]] ? '.' : ' ')));
             };
         };
         princ('|');
