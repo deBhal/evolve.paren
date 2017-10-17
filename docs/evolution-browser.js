@@ -26,6 +26,7 @@ function step(draw) {
     if (draw === undefined) {
         draw = true;
     };
+    RUNNING = null;
     updateWorldBrowser();
     incrementWorldAge();
     draw && drawWorldBrowser();
@@ -41,15 +42,30 @@ function run(steps) {
 };
 WORLDRENDERPERIOD = 10000;
 WORLDAGERENDERPERIOD = 100;
-function runningStep() {
+function runningStep(worldRenderPeriod, worldAgeRenderPeriod) {
+    if (worldRenderPeriod === undefined) {
+        worldRenderPeriod = WORLDRENDERPERIOD;
+    };
+    if (worldAgeRenderPeriod === undefined) {
+        worldAgeRenderPeriod = WORLDAGERENDERPERIOD;
+    };
     var finished = WORLDAGE >= RUNNING;
-    var shouldDrawWorld = finished || 0 === (WORLDAGE % WORLDRENDERPERIOD + WORLDRENDERPERIOD) % WORLDRENDERPERIOD;
-    var shouldDrawWorldAge = finished || 0 === (WORLDAGE % WORLDAGERENDERPERIOD + WORLDAGERENDERPERIOD) % WORLDAGERENDERPERIOD;
+    var shouldDrawWorld = finished || 0 === (WORLDAGE % worldRenderPeriod + worldRenderPeriod) % worldRenderPeriod;
+    var shouldDrawWorldAge = finished || 0 === (WORLDAGE % worldAgeRenderPeriod + worldAgeRenderPeriod) % worldAgeRenderPeriod;
     var drawingSomething = shouldDrawWorld || shouldDrawWorldAge;
     finished || updateWorldBrowser();
     shouldDrawWorld && drawWorldBrowser();
     shouldDrawWorldAge && drawWorldAge();
-    return finished || (drawingSomething ? setTimeout(runningStep) : runningStep());
+    return finished || (drawingSomething ? setTimeout(function () {
+        return runningStep(worldRenderPeriod, worldAgeRenderPeriod);
+    }) : runningStep(worldRenderPeriod, worldAgeRenderPeriod));
+};
+function play(steps) {
+    if (steps === undefined) {
+        steps = Infinity;
+    };
+    RUNNING = WORLDAGE + steps;
+    return runningStep(1, 1);
 };
 function stop() {
     return RUNNING = null;
@@ -64,20 +80,6 @@ function incrementWorldAge() {
     ++WORLDAGE;
     return drawWorldAge();
 };
-function getElementById(id) {
-    return document['getElementById'](id);
-};
-runForInputElement = getElementById('run-for-input');
-function runForInputValue() {
-    return run(Number(runForInputElement.value));
-};
-function assignOnClick(buttonId, callback) {
-    return document['getElementById'](buttonId)['onclick'] = callback;
-};
-assignOnClick('run', run);
-assignOnClick('stop', stop);
-assignOnClick('step', step);
-assignOnClick('run-for', runForInputValue);
 function scopeStateName(name) {
     return 'evolve:' + name;
 };
@@ -112,5 +114,23 @@ function loadState(name) {
     drawWorldAge();
     return currentState;
 };
+function getElementById(id) {
+    return document['getElementById'](id);
+};
+runForInputElement = getElementById('run-for-input');
+function runForInputValue() {
+    return run(Number(runForInputElement.value));
+};
+function playForInputValue() {
+    return play(Number(runForInputElement.value));
+};
+function assignOnClick(buttonId, callback) {
+    return document['getElementById'](buttonId)['onclick'] = callback;
+};
+assignOnClick('play', play);
+assignOnClick('fast-forward', run);
+assignOnClick('stop', stop);
+assignOnClick('step', playForInputValue);
+assignOnClick('run-for', runForInputValue);
 drawWorldBrowser();
 enter(1);
