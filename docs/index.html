@@ -47,6 +47,7 @@
   <body>
     <div class="content">
       <h1>Using Parenscript to Evolve</h1>
+      <p>A port of the "Using loop to Evolve!" example from Conrad Barski's <a href="http://landoflisp.com/">Land of Lisp</a>.</p>
       <div class="world">
         <textarea id="world" class="world" disabled="disabled" cols="95" rows="30"></textarea>
         <p/>
@@ -128,10 +129,11 @@
 
          <p>You can also watch the optimistic/explorer species evolve by tracking the forwards gene: <code>_.maxBy(ANIMALS, 'genes.1').genes</code>. I've added <code>optimism</code> or <code>pessimism</code> functions for this purpose too: <code>_.maxBy(ANIMALS, optimism).genes</code>
       </div>
-      <hr>
-      <div className="dislaimer">
-        Disclaimer: This port is not officially endorsed or associated with <a href="landoflisp.com">Land of Lisp</a>, I just think it's awesome.
       </div>
+    <hr>
+    <div className="dislaimer">
+        Disclaimer: This port is not officially endorsed or associated with <a href="landoflisp.com">Land of Lisp</a>, I just think it's awesome.<p>
+        Checkout the source at <a href="https://github.com/deBhal/evolve.paren">github.com/deBhal/evolve.paren</a>.
     </div>
     <script src="lodash.min.js"></script>
     <script src="/skewer"></script>
