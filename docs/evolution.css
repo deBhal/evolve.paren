@@ -27,6 +27,7 @@ label {
 }
 
 button {
+    box-sizing: content-box;
     font-size: 1em;
     margin: 1px;
     border-radius: 6px;
@@ -34,6 +35,8 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 8px;
+    min-width: 14px;
 }
 
 .controls #reset {
