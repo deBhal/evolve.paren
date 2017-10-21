@@ -37,6 +37,7 @@ button {
     align-items: center;
     padding: 8px;
     min-width: 14px;
+    min-height: 14px;
 }
 
 .controls #reset {
