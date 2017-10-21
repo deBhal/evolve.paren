@@ -102,6 +102,7 @@ function saveState(name) {
     };
     return saveItem(name, createCurrentStateObject());
 };
+/** Load the named state (default "state" and set it as the current world */
 function loadState(name) {
     if (name === undefined) {
         name = 'state';
@@ -113,6 +114,12 @@ function loadState(name) {
     drawWorldBrowser();
     drawWorldAge();
     return currentState;
+};
+/** Throw away arguments (e.g. if you don't care about the details of an input event) */
+function withoutArgs(fun) {
+    return function () {
+        return fun();
+    };
 };
 function getElementById(id) {
     return document['getElementById'](id);
@@ -132,4 +139,6 @@ assignOnClick('fast-forward', run);
 assignOnClick('stop', stop);
 assignOnClick('step', playForInputValue);
 assignOnClick('run-for', runForInputValue);
+assignOnClick('save', withoutArgs(saveState));
+assignOnClick('load', withoutArgs(loadState));
 drawWorldBrowser();
