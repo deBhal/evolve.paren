@@ -1,0 +1,40 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 5%;
+}
+
+.world {
+    font-family: monospace;
+    resize: none;
+    border-width: 0
+}
+
+.world,
+.controls,
+.status {
+    display: flex;
+    margin: 5px;
+    align-items: center;
+}
+input {
+    margin: 5px;
+}
+label {
+    margin-right: 0.5em;
+}
+
+button {
+    font-size: 1em;
+    margin: 1px;
+    border-radius: 6px;
+    border-width: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.state-controls #reset {
+    display: none;
+}
