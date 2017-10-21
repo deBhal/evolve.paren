@@ -13,7 +13,8 @@
 
 .world,
 .controls,
-.status {
+.status,
+label {
     display: flex;
     margin: 5px;
     align-items: center;
@@ -35,6 +36,6 @@ button {
     align-items: center;
 }
 
-.state-controls #reset {
+.controls #reset {
     display: none;
 }

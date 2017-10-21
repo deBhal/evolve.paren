@@ -118,6 +118,7 @@
     (save-item name (create-current-state-object)))
 
 (defun load-state (&optional (name "state"))
+  "Load the named state (default \"state\" and set it as the current world"
   (let ((current-state (load-item name)))
     (with-slots (world-age animals plants) current-state
         (setf *world-age* world-age
@@ -126,6 +127,10 @@
     (draw-world-browser)
     (draw-world-age)
     current-state))
+
+(defun without-args (fun)
+  "Throw away arguments (e.g. if you don't care about the details of an input event)"
+  (lambda () (fun)))
 
 ;; Hook up html buttons
 
@@ -147,5 +152,7 @@
 (assign-on-click "stop" stop)
 (assign-on-click "step" play-for-input-value)
 (assign-on-click "run-for" run-for-input-value)
+(assign-on-click "save" (without-args save-state))
+(assign-on-click "load" (without-args load-state))
 
 (draw-world-browser)
