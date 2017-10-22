@@ -57,11 +57,11 @@
       (incf (animal-energy animal) *plant-energy*)
       (remhash pos *plants*))))
 
-(defparameter *reproduction-energy* 200)
+(defparameter *reproduction-energy* 201)
 
 (defun reproduce (animal)
   (let ((e (animal-energy animal)))
-    (when (>= e *reproduction-energy*)
+    (when (> e *reproduction-energy*)
       (setf (animal-energy animal) (ash e -1))
       (let ((animal-nu (copy-structure animal))
             (genes     (copy-list (animal-genes animal)))

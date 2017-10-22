@@ -111,10 +111,12 @@
  )
 
 (defun optimism (animal)
-  ((@ _ sum) ((@ animal genes slice) 0 3)))
+  (let ((genes (@ animal genes)))
+    (+ ((@ _ last) genes)
+       ((@ _ sum) ((@ genes slice) 0 2)))))
 
 (defun pessimism (animal)
-  ((@ _ sum) ((@ animal genes slice) 3)))
+  ((@ _ sum) ((@ animal genes slice) 2 -1)))
 
 (defun plus (&rest args) ((@ _ sum) args))
 (setf lodash-subs
