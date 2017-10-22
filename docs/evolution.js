@@ -16,11 +16,11 @@ var ANIMALS = [{ 'x' : WIDTH >> 1,
                  'energy' : 1000,
                  'dir' : 0,
                  'genes' : (function () {
-    var collect22 = [];
-    for (var _js21 = 0; _js21 < 8; _js21 += 1) {
-        collect22.push(Math.floor(10 * Math.random()) + 1);
+    var collect16 = [];
+    for (var _js15 = 0; _js15 < 8; _js15 += 1) {
+        collect16.push(Math.floor(10 * Math.random()) + 1);
     };
-    return collect22;
+    return collect16;
 })()
                }];
 function move(animal) {
@@ -46,10 +46,10 @@ function eat(animal) {
         return remhash(pos, PLANTS);
     };
 };
-var REPRODUCTIONENERGY = 200;
+var REPRODUCTIONENERGY = 201;
 function reproduce(animal) {
     var e = animal['energy'];
-    if (e >= REPRODUCTIONENERGY) {
+    if (e > REPRODUCTIONENERGY) {
         animal['energy'] = e >> 1;
         var animalNu = copyStructure(animal);
         var genes = copyList(animal['genes']);
@@ -72,15 +72,15 @@ function updateWorld() {
     return addPlants();
 };
 function drawWorld() {
-    var animal23;
+    var animal17;
     for (var y = 0; y < HEIGHT; y += 1) {
         freshLine();
         princ('|');
         for (var x = 0; x < WIDTH; x += 1) {
             with ({ x : x }) {
-                princ((animal23 = some(function (animal) {
+                princ((animal17 = some(function (animal) {
                     return animal['x'] === x && animal['y'] === y;
-                }, ANIMALS), animal23 ? charFor(animal23) : (PLANTS[[x, y]] ? '.' : ' ')));
+                }, ANIMALS), animal17 ? charFor(animal17) : (PLANTS[[x, y]] ? '.' : ' ')));
             };
         };
         princ('|');

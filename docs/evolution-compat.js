@@ -3,10 +3,11 @@
 ['progn', ['import', ['quote', 'var']], ['shadow', ['quote', 'var']], ['usePackage', 'parenscript'], ['defpsmacro', 'defparameter', ['&body', 'body'], ['quasiquote', ['defvar', null]]], ['defpsmacro', 'defmake', ['name'], ['quasiquote', ['defmacro', null, ['&rest', 'props'], ['quasiquote', ['create', null]]]]], ['defpsmacro', 'defineAccessor', ['structName', 'slotName'], ['quasiquote', ['defmacro', null, ['obj'], ['quasiquote', ['getprop', null, null]]]]], ['definePsSymbolMacro', 'cons', 'list'], ['defpsmacro', 'cons', ['&rest', 'args'], ['quasiquote', ['list', null]]], ['defpsmacro', 'defstruct', ['structName', '&rest', 'slots'], ['quasiquote', ['progn', ['defmake', null], null]]], ['defpsmacro', 'gethash', ['key', 'obj'], ['quasiquote', ['getprop', null, null]]], ['defpsmacro', 'nth', ['n', 'list'], ['quasiquote', ['getprop', null, null]]]];
 [['at', 'location', 'reload']];
 function optimism(animal) {
-    return _.sum(animal.genes.slice(0, 3));
+    var genes8 = animal.genes;
+    return _.last(genes8) + _.sum(genes8.slice(0, 2));
 };
 function pessimism(animal) {
-    return _.sum(animal.genes.slice(3));
+    return _.sum(animal.genes.slice(2, -1));
 };
 function plus() {
     var args = Array.prototype.slice.call(arguments, 0);
@@ -15,20 +16,20 @@ function plus() {
 lodashSubs = [['car', 'head'], ['cdr', 'tail'], ['copyStructure', 'cloneDeep'], ['copyList', 'cloneDeep']];
 lodashFlipSubs = [['some', 'find'], ['removeIf', 'reject'], ['mapc', 'map']];
 (function () {
-    var _js26 = lodashSubs.length;
-    for (var _js25 = 0; _js25 < _js26; _js25 += 1) {
-        var _db27 = lodashSubs[_js25];
-        var local = _db27[0];
-        var remote = _db27[1];
+    var _js10 = lodashSubs.length;
+    for (var _js9 = 0; _js9 < _js10; _js9 += 1) {
+        var _db11 = lodashSubs[_js9];
+        var local = _db11[0];
+        var remote = _db11[1];
         this[local] = _[remote];
     };
 }).call(this);
 (function () {
-    var _js28 = lodashFlipSubs.length;
-    for (var _js27 = 0; _js27 < _js28; _js27 += 1) {
-        var _db29 = lodashFlipSubs[_js27];
-        var local = _db29[0];
-        var remote = _db29[1];
+    var _js12 = lodashFlipSubs.length;
+    for (var _js11 = 0; _js11 < _js12; _js11 += 1) {
+        var _db13 = lodashFlipSubs[_js11];
+        var local = _db13[0];
+        var remote = _db13[1];
         this[local] = _.flip(_[remote]);
     };
 }).call(this);
@@ -42,11 +43,11 @@ function equal(l, r) {
     return l == r;
 };
 function makeHashTable() {
-    var _js30 = arguments.length;
-    for (var n29 = 0; n29 < _js30; n29 += 2) {
-        switch (arguments[n29]) {
+    var _js14 = arguments.length;
+    for (var n13 = 0; n13 < _js14; n13 += 2) {
+        switch (arguments[n13]) {
         case 'test':
-            test = arguments[n29 + 1];
+            test = arguments[n13 + 1];
         };
     };
     var test;
