@@ -82,20 +82,29 @@
 
         <p>The simulation includes a "jungle" area in the center where food spawns twice as often as the rest of the world, and what we'd like to see is some "speciation", as one group of animals evolves to take advantage of the jungle by not moving much, and another group roams much more widely looking for the rest of the food.
 
-        <p>The animals genes are weights for it turning relative to it's previous facing, with 1 (the second entry) being "straight ahead" (it will move in the same direction it was going in the previous cycle):<p>
+        <p>The animals genes are weights for it turning relative to it's previous facing, with 0 (the first entry in the array) being "straight ahead", the same direction it went in the previous cycle:<p>
           <pre>
-            0 1 2
-            7 &uarr; 3
-            6 5 4
+            7 0 1
+            6 &uarr; 2
+            5 4 3
           </pre>
 
-          <p>So if an animal's genes were <code>[1, 4, 1, 0, 0, 0, 0, 0]</code> you could imagine rolling a die and counting through the numbers: 1 &rarr; turn 45&deg; to the left, 2-5 &rarr; go straight ahead, 6 &rarr; turn 45&deg; to the right. The weights are relative, so if the animal had a the same value for every gene, it would move completely randomly no matter what the actual value was.
+        <p>If an animal only had a value in position 2, like <code>[0, 0, 42, 0, 0, 0, 0, 0]</code>, it would always turn 90&deg; to its right in a tiny square:
+          <pre>
+            &rarr; &darr;
+            &uarr; &larr;
+          </pre>
 
-        <p>So If the first three values are high (especially the second value), the animal will tend to travel, and if the other 5 values are high, it will tend to mill or circle around near the area that it starts.
+        <p>With multiple genes, their relative values determine the animals behaviour. If the animal had a the same value for every gene, it would move completely randomly. If an animal's genes were <code>[3, 2, 0, 0, 0, 0, 0, 1]</code> you could imagine rolling a die and counting through the numbers: 1-3 &rarr; go straight ahead, 4 or 5 &rarr; turn 45&deg; to the right and 6 turn 45&deg; to the left (skipping over all the 0s in the middle). This animal would roam widely around the map, with a tendency to loop around. You'd get the exact same behaviour if you multiplied all the values by 100 or a thousand (e.g. <code>[4000, 1000, 0, 0, 0, 0, 0, 1000]</code>). If you want to explore individual animal behaviours, you can disable starvation and reproduction in the console:
+          <pre>
+            REPRODUCTIONENERGY = Infinity // Disable reproduction
+            ANIMALS[0].energy = Infinity // Disable starvation
+            ANIMALS[0].genes = [3, 2, 0, 0, 0, 0, 0, 1]; // Set the behaviour you're interested in.
+          </pre>
 
         <p>Note: The first animal gets a huge artificial starting "energy", which means it will reproduce a bunch of times without having to find food, so it might be interesting to mess with it. You could kickstart the pessimistic breed by refreshing the page and copying this into the console: <code>ANIMALS[0].genes = [0, 0, 0, 1, 1, 10, 1, 1]</code> or hand craft something you think might do very well or very poorly (you'll need to refresh the page if they die out, but I've never seen that happen).
 
-         <p>You can also watch the optimistic/explorer species evolve by tracking the forwards gene: <code>_.maxBy(ANIMALS, 'genes.1').genes</code>. I've added <code>optimism</code> or <code>pessimism</code> functions for this purpose too: <code>_.maxBy(ANIMALS, optimism).genes</code>
+         <p>You can also watch the optimistic/explorer species evolve by tracking the forwards gene: <code>_.maxBy(ANIMALS, 'genes.0').genes</code>. I've added <code>optimism</code> or <code>pessimism</code> functions for this purpose too: <code>_.maxBy(ANIMALS, optimism).genes</code>
       </div>
       </div>
     <hr>
