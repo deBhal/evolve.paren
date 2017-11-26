@@ -3,8 +3,10 @@
   <head>
     <title>Using Parenscript to Evolve</title>
     <link rel="stylesheet" type="text/css" href="evolution.css" media="screen" />
-    <style type="text/css">
-    </style>
+    <script src="jquery-1.11.2.min.js"></script>
+    <script src="d3.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="tsne.js"></script>
   </head>
   <body>
     <div class="content">
@@ -75,7 +77,7 @@
         </label>
       </div>
       <div className="explanation">
-        All the "animals" work the same way, exploring the map according to their "genes", eating food (<code>.</code>) they come across to keep themselves alive, and using excess food to reproduce asexually.
+        All the "animals" work the same way, exploring the map according to their "genes", eating plants (<code>.</code>) they come across to keep themselves alive, and using excess food to reproduce asexually.
 
         <p>They are rendered according to a simplistic "optimism" measure from most to least "optimistic": <code>A</code> <code>^</code> <code>o</code> <code>x</code> <code>X</code>.
         <p>An <code>A</code> indicates that the animals genes are such that it will nearly always move forwards, and at the other extreme an <code>X</code> indicates an animal that will almost always turn to the side or backwards.
@@ -108,6 +110,28 @@
       </div>
       </div>
     <hr>
+    <div class="content">
+      <h3>Visualizing the population</h3>
+      <div class="explanation">
+        To get some more insight into what's going on, I've copied Andrej Karpathy's <a href="http://cs.stanford.edu/people/karpathy/tsnejs/csvdemo.html">tsne demo</a> to try and visualize the relationships between the animals. It seems to work pretty well, but the <a href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding">t-SNE</a> does have a stochastif aspect, so you need to re-run a bad one sometimes. Feel free to fiddle with the learning rate and especially the perplexity as well, as this has a large impact on the results.
+        <p>Note: that t-SNE is computationally expensive, so don't run the visualization and the evolution at the same time.
+        <br>
+        Learning rate: <input type="text" id="lrtxt" maxlength="10" value="10" style="width:40px;">
+        Perplexity: <input type="text" id="perptxt" maxlength="10" value="15" style="width:40px;">
+
+        <div class="controls">
+          <button type="button" id="inbut">Run t-SNE!</button>
+          <button type="button" id="stopbut">Stop</button>
+        </div>
+
+        <div class="controls">
+          <div id="cost" style="text-align:left; font-family: Impact;"></div>
+          <div id="genes" Style="text-align:left; font-family: Impact;"></div>
+        </div>
+        <div id="embed"></div>
+      </div>
+    </div>
+    <hr>
     <div className="dislaimer">
         Disclaimer: This port is not officially endorsed or associated with <a href="landoflisp.com">Land of Lisp</a>, I just think it's awesome.<p>
         Checkout the source at <a href="https://github.com/deBhal/evolve.paren">github.com/deBhal/evolve.paren</a>.
@@ -117,5 +141,6 @@
     <script src="evolution-compat.js"></script>
     <script src="evolution.js"></script>
     <script src="evolution-browser.js"></script>
+    <script src="tsne-csvdemo.js"></script>
   </body>
 </html>
